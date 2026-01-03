@@ -1,0 +1,39 @@
+# Core dependencies
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+
+# Technical indicators
+ta-lib>=0.4.28
+pandas-ta>=0.3.14b
+
+# Machine Learning
+scikit-learn>=1.3.0
+joblib>=1.3.0
+
+# API and WebSocket
+requests>=2.31.0
+websocket-client>=1.6.0
+aiohttp>=3.8.0
+
+# Data handling
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Monitoring and dashboard
+streamlit>=1.28.0
+plotly>=5.17.0
+dash>=2.14.0
+
+# Logging
+colorlog>=6.7.0
+
+# Timezone
+pytz>=2023.3
+
+# Async
+asyncio>=3.4.3
+
+# Testing and backtest
+pytest>=7.4.0
+matplotlib>=3.7.0

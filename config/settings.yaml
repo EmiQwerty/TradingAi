@@ -1,0 +1,200 @@
+# Trading System Global Configuration
+# INTEGRAZIONE OANDA v20 API
+
+# Broker Configuration - OANDA v20
+broker:
+  broker_type: "oanda"
+  # OANDA Credentials (from .env or .env.oanda)
+  oanda_api_key: "${OANDA_API_KEY}"
+  oanda_account_id: "${OANDA_ACCOUNT_ID}"
+  is_live: false  # false=DEMO, true=LIVE
+  
+  # Alternative legacy format (deprecated)
+  name: "oanda_v20"
+  api_url: "https://api-fxpractice.oanda.com/v3"
+  websocket_url: "https://stream-fxpractice.oanda.com/v3"
+  timeout: 30
+  max_retries: 3
+
+# Trading Configuration
+trading:
+  enabled: true
+  mode: "demo"
+  max_positions: 10
+  base_currency: "USD"
+  primary_timeframe: "H1"
+  update_interval_seconds: 60
+  initial_capital: 100000.0
+  close_positions_on_shutdown: false
+  symbols:
+    - EUR_USD
+    - GBP_USD
+    - XAU_USD
+  
+# Timeframes to monitor (OANDA standard format)
+timeframes:
+  - "M1"   # 1 minute
+  - "M5"   # 5 minutes
+  - "M15"  # 15 minutes
+  - "H1"   # 1 hour
+  - "H4"   # 4 hours
+
+# Symbols configuration
+symbols:
+  - symbol: "EURUSD"
+    enabled: true
+    lot_size: 0.01
+    max_lots: 1.0
+  - symbol: "GBPUSD"
+    enabled: true
+    lot_size: 0.01
+    max_lots: 1.0
+  - symbol: "XAUUSD"
+    enabled: true
+    lot_size: 0.01
+    max_lots: 0.5
+
+# Technical Indicators Configuration
+indicators:
+  rsi:
+    period: 14
+    overbought: 70
+    oversold: 30
+  
+  stochastic:
+    k_period: 14
+    d_period: 3
+    overbought: 80
+    oversold: 20
+  
+  moving_averages:
+    fast_period: 10
+    medium_period: 50
+    slow_period: 200
+    type: "EMA"  # SMA or EMA
+  
+  pmax:
+    period: 10
+    multiplier: 3.0
+    atr_length: 10
+  
+  atr:
+    period: 14
+  
+  volatility:
+    std_period: 20
+    percentile_period: 100
+
+# Structure Detection Configuration
+structure:
+  bos_lookback: 50  # Candles to look back for Break of Structure
+  choch_lookback: 30  # Candles for Change of Character
+  order_block_threshold: 0.7  # Min strength for valid order block
+  swing_strength: 5  # Number of bars for swing detection
+
+# Machine Learning Configuration
+ml:
+  enabled: true
+  inference_only: true  # No training, only inference
+  models_path: "ml/models"
+  update_interval: 60  # Seconds between ML predictions
+  
+  regime:
+    features: ["rsi", "atr", "ma_distance", "volume_ratio"]
+    classes: ["TREND", "RANGE", "CHAOS"]
+  
+  trend:
+    features: ["price_change", "ma_cross", "momentum", "structure_score"]
+    output: "trend_strength"  # -1 to 1
+  
+  volatility:
+    features: ["atr", "std", "price_range", "volume"]
+    output: "volatility_state"  # LOW, MEDIUM, HIGH
+
+# Macro Filter Configuration
+macro:
+  enabled: true
+  weight: 0.08  # 8% weight in final decision
+  api_url: "https://economic-calendar.tradingeconomics.com/v1"
+  api_key: "${MACRO_API_KEY}"
+  update_interval: 3600  # Update every hour
+  
+  impact_levels:
+    high: 0.9  # Reduce trading by 90% during high impact events
+    medium: 0.5  # Reduce by 50%
+    low: 0.1  # Reduce by 10%
+  
+  event_buffer:
+    before_minutes: 30  # Start reducing 30 min before event
+    after_minutes: 15  # Keep reduced 15 min after event
+
+# Risk Management Configuration
+risk:
+  max_risk_per_trade: 0.01  # 1% per trade
+  max_daily_risk: 0.05  # 5% daily
+  max_total_exposure: 0.15  # 15% total exposure
+  max_drawdown: 0.20  # 20% max drawdown before stop
+  
+  correlation_threshold: 0.7  # Don't trade highly correlated pairs
+  max_correlated_positions: 2
+  
+  trailing_stop:
+    enabled: true
+    activation_ratio: 1.5  # Activate after 1.5x risk profit
+    trail_ratio: 0.5  # Trail at 50% of profit
+
+# Execution Configuration
+execution:
+  slippage_tolerance: 0.0005  # 5 pips max slippage
+  max_order_retries: 3
+  order_timeout: 10  # Seconds
+  throttle_ms: 100  # Min milliseconds between orders
+  
+  stop_loss:
+    default_pips: 20
+    min_pips: 10
+    max_pips: 100
+  
+  take_profit:
+    default_ratio: 2.0  # 2:1 RR
+    min_ratio: 1.5
+    max_ratio: 5.0
+
+# Data Storage Configuration
+storage:
+  path: "data/historical"
+  format: "parquet"  # parquet or csv
+  retention_days: 90
+  compression: "snappy"
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "logs/trading.log"
+  max_size_mb: 100
+  backup_count: 5
+  console_output: true
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Monitoring Configuration
+monitoring:
+  dashboard:
+    enabled: true
+    port: 8501
+    update_interval: 1  # Seconds
+    auto_refresh: true
+  
+  metrics:
+    calculate_interval: 5  # Seconds
+    history_length: 1000  # Number of data points to keep
+
+# Backtest Configuration
+backtest:
+  initial_balance: 10000
+  commission: 0.00007  # 7 USD per lot round trip
+  spread_pips: 1.0
+  data_source: "historical"
+  walk_forward:
+    train_months: 6
+    test_months: 1
+    optimization_metric: "sharpe_ratio"

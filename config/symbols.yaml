@@ -1,0 +1,141 @@
+# Symbol-Specific Configuration
+
+symbols:
+  EURUSD:
+    name: "Euro / US Dollar"
+    type: "forex"
+    pip_value: 0.0001
+    contract_size: 100000
+    min_lot: 0.01
+    max_lot: 10.0
+    lot_step: 0.01
+    margin_required: 1000  # Per lot
+    
+    # Strategy configuration for EURUSD
+    strategy:
+      name: "trend_following"
+      timeframes: ["M5", "M15", "H1", "H4"]
+      primary_tf: "H1"
+      
+      entry_conditions:
+        min_trend_strength: 0.6
+        min_confidence: 0.65
+        require_structure_confirmation: true
+        require_ma_alignment: true
+      
+      exit_conditions:
+        take_profit_ratio: 2.5
+        stop_loss_pips: 25
+        use_trailing_stop: true
+    
+    # Risk parameters
+    risk:
+      max_risk_per_trade: 0.015  # 1.5% for major pair
+      max_positions: 3
+      position_sizing: "fixed_risk"  # fixed_risk or kelly
+  
+  GBPUSD:
+    name: "British Pound / US Dollar"
+    type: "forex"
+    pip_value: 0.0001
+    contract_size: 100000
+    min_lot: 0.01
+    max_lot: 10.0
+    lot_step: 0.01
+    margin_required: 1000
+    
+    # Strategy configuration for GBPUSD
+    strategy:
+      name: "breakout"
+      timeframes: ["M5", "M15", "H1"]
+      primary_tf: "M15"
+      
+      entry_conditions:
+        min_trend_strength: 0.5
+        min_confidence: 0.60
+        require_structure_confirmation: true
+        require_volatility_expansion: true
+      
+      exit_conditions:
+        take_profit_ratio: 2.0
+        stop_loss_pips: 30
+        use_trailing_stop: true
+    
+    # Risk parameters
+    risk:
+      max_risk_per_trade: 0.012  # 1.2% (more volatile)
+      max_positions: 2
+      position_sizing: "fixed_risk"
+  
+  XAUUSD:
+    name: "Gold / US Dollar"
+    type: "commodity"
+    pip_value: 0.01
+    contract_size: 100  # Troy ounces
+    min_lot: 0.01
+    max_lot: 5.0
+    lot_step: 0.01
+    margin_required: 2000  # Higher margin for gold
+    
+    # Strategy configuration for XAUUSD
+    strategy:
+      name: "range_momentum"
+      timeframes: ["M15", "H1", "H4"]
+      primary_tf: "H1"
+      
+      entry_conditions:
+        min_trend_strength: 0.55
+        min_confidence: 0.70  # Higher confidence for gold
+        require_structure_confirmation: true
+        require_support_resistance: true
+      
+      exit_conditions:
+        take_profit_ratio: 3.0  # Wider targets for gold
+        stop_loss_pips: 50  # Wider stops (in cents)
+        use_trailing_stop: true
+    
+    # Risk parameters
+    risk:
+      max_risk_per_trade: 0.010  # 1.0% (high volatility)
+      max_positions: 2
+      position_sizing: "fixed_risk"
+
+# Correlation Matrix (used for risk management)
+correlations:
+  - pair: ["EURUSD", "GBPUSD"]
+    typical_correlation: 0.75
+    max_concurrent_positions: 2
+  
+  - pair: ["EURUSD", "XAUUSD"]
+    typical_correlation: -0.2
+    max_concurrent_positions: 3
+  
+  - pair: ["GBPUSD", "XAUUSD"]
+    typical_correlation: -0.15
+    max_concurrent_positions: 3
+
+# Session-specific configuration
+sessions:
+  asian:
+    start_hour: 0  # UTC
+    end_hour: 8
+    volatility_adjustment: 0.7  # Reduce position size by 30%
+    preferred_symbols: []  # None specifically preferred
+  
+  london:
+    start_hour: 8
+    end_hour: 16
+    volatility_adjustment: 1.0  # Normal
+    preferred_symbols: ["EURUSD", "GBPUSD"]
+  
+  new_york:
+    start_hour: 13
+    end_hour: 22
+    volatility_adjustment: 1.0
+    preferred_symbols: ["EURUSD", "XAUUSD"]
+  
+  overlap:  # London/NY overlap
+    start_hour: 13
+    end_hour: 16
+    volatility_adjustment: 1.2  # Increase size by 20%
+    preferred_symbols: ["EURUSD", "GBPUSD", "XAUUSD"]

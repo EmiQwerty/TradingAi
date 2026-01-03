@@ -1,0 +1,235 @@
+# Risk Management Configuration
+
+# Global Risk Parameters
+global_risk:
+  initial_capital: 10000.0
+  currency: "USD"
+  
+  # Maximum risk limits
+  max_risk_per_trade: 0.01  # 1% per trade
+  max_daily_risk: 0.05  # 5% per day
+  max_weekly_risk: 0.15  # 15% per week
+  max_monthly_risk: 0.30  # 30% per month
+  
+  # Exposure limits
+  max_total_exposure: 0.15  # 15% of capital at risk simultaneously
+  max_leverage: 10.0  # Maximum 10x leverage
+  
+  # Drawdown limits
+  max_drawdown_percent: 0.20  # 20% max drawdown
+  max_consecutive_losses: 5
+  daily_loss_limit: 0.10  # Stop trading after 10% daily loss
+
+# Position Sizing Methods
+position_sizing:
+  default_method: "fixed_risk"  # fixed_risk, fixed_size, kelly, optimal_f
+  
+  fixed_risk:
+    risk_per_trade: 0.01  # 1%
+    min_lot_size: 0.01
+    max_lot_size: 10.0
+  
+  kelly:
+    enabled: false
+    fraction: 0.25  # Use 25% of Kelly criterion (conservative)
+    min_win_rate: 0.40
+    lookback_trades: 50
+  
+  optimal_f:
+    enabled: false
+    lookback_trades: 100
+
+# Stop Loss Configuration
+stop_loss:
+  method: "atr_based"  # fixed, atr_based, structure_based, volatility_adjusted
+  
+  fixed:
+    default_pips: 20
+    min_pips: 10
+    max_pips: 100
+  
+  atr_based:
+    multiplier: 2.0
+    min_atr_period: 14
+    min_pips: 10
+    max_pips: 150
+  
+  structure_based:
+    buffer_pips: 5  # Additional pips beyond structure level
+    max_distance_pips: 100
+  
+  trailing_stop:
+    enabled: true
+    activation_profit_ratio: 1.5  # Activate after 1.5R profit
+    trail_distance_ratio: 0.5  # Trail at 50% of current profit
+    step_ratio: 0.25  # Move stop by 25% steps
+
+# Take Profit Configuration
+take_profit:
+  method: "risk_reward"  # risk_reward, atr_based, structure_based
+  
+  risk_reward:
+    default_ratio: 2.0  # 2:1 RR
+    min_ratio: 1.5
+    max_ratio: 5.0
+  
+  atr_based:
+    multiplier: 3.0
+    max_pips: 200
+  
+  partial_profits:
+    enabled: true
+    levels:
+      - ratio: 1.5
+        close_percent: 30  # Close 30% at 1.5R
+      - ratio: 2.5
+        close_percent: 50  # Close 50% at 2.5R (total 80% closed)
+
+# Correlation Risk Management
+correlation:
+  enabled: true
+  calculation_period: 30  # Days
+  update_interval: 3600  # Seconds
+  
+  limits:
+    max_correlation: 0.7  # Don't open positions if correlation > 0.7
+    max_correlated_positions: 2
+    correlation_exposure_limit: 0.10  # Max 10% in correlated positions
+  
+  # Actions when correlation exceeded
+  actions:
+    reduce_position_size: 0.5  # Reduce to 50% if correlation high
+    skip_new_entries: true
+    close_weakest_position: false
+
+# Drawdown Management
+drawdown:
+  monitoring_interval: 60  # Check every minute
+  
+  actions:
+    - level: 0.10  # 10% drawdown
+      action: "reduce_risk"
+      reduction_factor: 0.8  # Reduce risk to 80%
+    
+    - level: 0.15  # 15% drawdown
+      action: "reduce_risk"
+      reduction_factor: 0.5  # Reduce risk to 50%
+    
+    - level: 0.20  # 20% drawdown
+      action: "stop_trading"
+      notification: true
+      resume_after_hours: 24
+
+# Consecutive Loss Management
+consecutive_losses:
+  monitoring: true
+  
+  actions:
+    - count: 3
+      action: "reduce_risk"
+      reduction_factor: 0.75
+    
+    - count: 5
+      action: "stop_trading"
+      resume_after_hours: 4
+
+# Daily/Weekly Limits
+time_based_limits:
+  daily:
+    max_trades: 20
+    max_risk: 0.05  # 5%
+    max_loss: 0.10  # 10%
+    stop_trading_after_loss: true
+  
+  weekly:
+    max_trades: 50
+    max_risk: 0.15
+    reset_day: "monday"  # When to reset weekly counters
+  
+  monthly:
+    max_trades: 200
+    max_risk: 0.30
+    reset_day: 1  # First day of month
+
+# Portfolio Heat Management
+portfolio_heat:
+  enabled: true
+  max_heat: 0.15  # Max 15% of capital at risk
+  calculation: "sum_of_risks"  # sum_of_risks or monte_carlo
+  
+  # Heat-based actions
+  reduce_at_heat: 0.12  # Start reducing at 12% heat
+  stop_new_at_heat: 0.15  # Stop new entries at 15% heat
+
+# Volatility-Based Adjustments
+volatility_adjustments:
+  enabled: true
+  lookback_period: 20
+  
+  low_volatility:
+    threshold_percentile: 30
+    position_size_multiplier: 1.2  # Increase size by 20%
+  
+  high_volatility:
+    threshold_percentile: 70
+    position_size_multiplier: 0.7  # Decrease size by 30%
+  
+  extreme_volatility:
+    threshold_percentile: 90
+    action: "stop_trading"
+    resume_after_bars: 10
+
+# Time-Based Risk Adjustments
+time_adjustments:
+  # Reduce risk during low liquidity periods
+  low_liquidity_hours:
+    enabled: true
+    hours: [22, 23, 0, 1]  # UTC
+    risk_multiplier: 0.5
+  
+  # Weekend risk
+  weekend:
+    friday_close_hour: 21  # UTC - start reducing positions
+    close_all_positions: false
+    reduce_position_size: 0.7
+
+# Risk Metrics Monitoring
+metrics:
+  calculate_interval: 300  # Every 5 minutes
+  
+  track:
+    - sharpe_ratio
+    - sortino_ratio
+    - max_drawdown
+    - win_rate
+    - profit_factor
+    - average_rr
+    - expectancy
+  
+  alerts:
+    sharpe_below: 0.5
+    win_rate_below: 0.40
+    profit_factor_below: 1.2
+    drawdown_above: 0.15
+
+# Emergency Stop
+emergency:
+  enabled: true
+  
+  triggers:
+    - type: "rapid_loss"
+      threshold: 0.08  # 8% loss in short period
+      period_minutes: 30
+    
+    - type: "system_error"
+      max_consecutive_errors: 5
+    
+    - type: "connection_loss"
+      max_duration_seconds: 300
+  
+  actions:
+    close_all_positions: true
+    cancel_all_orders: true
+    notification: true
+    lock_trading: true
+    unlock_requires_manual: true
